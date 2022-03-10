@@ -6,6 +6,7 @@ public class ChangeKeyPowerUp : MonoBehaviour
 {
     [SerializeField] private float speed;
 
+    
 
     // Start is called before the first frame update
     void Start()
@@ -26,6 +27,7 @@ public class ChangeKeyPowerUp : MonoBehaviour
     {
         if (other.CompareTag("bird"))
         {
+            GameManager.InvokePowerUpTaken();
             GameManager.InvokeGenerateKey();
             Destroy(gameObject);
         }

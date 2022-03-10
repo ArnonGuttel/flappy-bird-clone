@@ -8,13 +8,12 @@ public class GameManager : MonoBehaviour
 {
     #region Inspector
 
-    [SerializeField] private TextMeshProUGUI keyTimeLeftMsg;
     [SerializeField] private GameObject wallPrefab;
     [SerializeField] private GameObject changeKeyPrefab;
     [SerializeField] private float firstWallTime;
     [SerializeField] private float wallsDelay;
     [SerializeField] private float keyChangeDelayDuration;
-    
+
     #endregion
 
     #region Fields
@@ -28,16 +27,18 @@ public class GameManager : MonoBehaviour
     };
 
     public static string curKey = "space";
-    
+
     private string _nextKey;
     private float _keyCountdown;
-    private bool _CountdownStarted;
+    private bool _countdownStarted;
 
     #endregion
 
     #region Events
 
     public static event Action GenerateKey;
+
+    public static event Action powerUpTaken;
     public static event Action GameOver;
 
     #endregion
@@ -48,6 +49,7 @@ public class GameManager : MonoBehaviour
     {
         GameOver += Temp;
         GenerateKey += generateKey;
+        
     }
 
     private void OnDestroy()
@@ -59,41 +61,45 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         InvokeRepeating(nameof(CreateWall), firstWallTime, wallsDelay);
-        InvokeRepeating(nameof(CreateKeyChangePowerUp), firstWallTime-1f, wallsDelay);
+        InvokeRepeating(nameof(CreateKeyChangePowerUp), firstWallTime - 1f, wallsDelay);
         _keyCountdown = keyChangeDelayDuration;
     }
 
     private void Update()
     {
-        if (_CountdownStarted)
+        if (_countdownStarted)
         {
             if (_keyCountdown <= 0)
             {
                 curKey = _nextKey;
-                _CountdownStarted = false;
+                _countdownStarted = false;
             }
             else
             {
                 _keyCountdown -= Time.deltaTime;
             }
         }
-        double timeLeft = Math.Round(_keyCountdown, 2);
-        keyTimeLeftMsg.text = timeLeft.ToString();
     }
 
     #endregion
-    
+
     #region Methods
 
     public static void InvokeGameOver()
     {
         GameOver?.Invoke();
     }
-    
+
     public static void InvokeGenerateKey()
     {
         GenerateKey?.Invoke();
     }
+
+    public static void InvokePowerUpTaken()
+    {
+        powerUpTaken?.Invoke();
+    }
+
     private void CreateWall()
     {
         Instantiate(wallPrefab);
@@ -108,18 +114,17 @@ public class GameManager : MonoBehaviour
     {
         print("GameOver");
     }
-    
+
     private void generateKey()
     {
-        if (_CountdownStarted)
+        if (_countdownStarted)
             return;
-        
+
         _nextKey = keys[Random.Range(0, keys.Length - 1)];
         _keyCountdown = keyChangeDelayDuration;
-        _CountdownStarted = true;
+        _countdownStarted = true;
         print(_nextKey);
     }
-    
-    
+
     #endregion
 }
