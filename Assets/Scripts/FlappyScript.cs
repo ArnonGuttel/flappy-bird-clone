@@ -19,11 +19,13 @@ public class FlappyScript : MonoBehaviour
     private void Awake()
     {
         GameManager.GameOver += changeColor;
+        GameManager.changeGravity += chagneGravity;
     }
 
     private void OnDestroy()
     {
         GameManager.GameOver -= changeColor;
+        GameManager.changeGravity -= chagneGravity;
     }
 
     private void Start()
@@ -60,6 +62,14 @@ public class FlappyScript : MonoBehaviour
         gameObject.GetComponent<SpriteRenderer>().color = Color.red;
     }
 
+    private void chagneGravity()
+    {
+        _rb.gravityScale *= -1;
+        jumpHeight *= -1;
+    }
+    
+    
+    
     #endregion
     
 }

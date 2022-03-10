@@ -9,7 +9,8 @@ public class GameManager : MonoBehaviour
     #region Inspector
 
     [SerializeField] private GameObject wallPrefab;
-    [SerializeField] private GameObject changeKeyPrefab;
+    [SerializeField] private GameObject keyChangePrefab;
+    [SerializeField] private GameObject gravityChangePrefab;
     [SerializeField] private float firstWallTime;
     [SerializeField] private float wallsDelay;
     [SerializeField] private float keyChangeDelayDuration;
@@ -36,9 +37,9 @@ public class GameManager : MonoBehaviour
 
     #region Events
 
-    public static event Action GenerateKey;
-
     public static event Action powerUpTaken;
+    public static event Action changeGravity;
+    public static event Action GenerateKey;
     public static event Action GameOver;
 
     #endregion
@@ -61,7 +62,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         InvokeRepeating(nameof(CreateWall), firstWallTime, wallsDelay);
-        InvokeRepeating(nameof(CreateKeyChangePowerUp), firstWallTime - 1f, wallsDelay);
+        InvokeRepeating(nameof(CreatePowerUp), firstWallTime - 3f, wallsDelay);
         _keyCountdown = keyChangeDelayDuration;
     }
 
@@ -100,14 +101,20 @@ public class GameManager : MonoBehaviour
         powerUpTaken?.Invoke();
     }
 
+    public static void InvokeGravityChange()
+    {
+        changeGravity?.Invoke();
+    }
+
     private void CreateWall()
     {
         Instantiate(wallPrefab);
     }
 
-    private void CreateKeyChangePowerUp()
+    private void CreatePowerUp()
     {
-        Instantiate(changeKeyPrefab);
+        var temp = Random.Range(0, 2);
+        Instantiate(temp == 0 ? keyChangePrefab : gravityChangePrefab);
     }
 
     private void Temp()
