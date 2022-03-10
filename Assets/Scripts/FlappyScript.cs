@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class FlappyScript : MonoBehaviour
@@ -35,7 +34,7 @@ public class FlappyScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(GameManager.curKey))
         {
             _rb.velocity = new Vector2(0,jumpHeight);
         }

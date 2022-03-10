@@ -1,56 +1,125 @@
 using System;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
     #region Inspector
 
+    [SerializeField] private TextMeshProUGUI keyTimeLeftMsg;
     [SerializeField] private GameObject wallPrefab;
-    [SerializeField] private float wallDelay;
+    [SerializeField] private GameObject changeKeyPrefab;
+    [SerializeField] private float firstWallTime;
+    [SerializeField] private float wallsDelay;
+    [SerializeField] private float keyChangeDelayDuration;
     
     #endregion
 
-    // #region Fields
-    //
-    // private static GameManager _shared;
-    //
-    // #endregion
+    #region Fields
+
+    private readonly String[] keys =
+    {
+        "backspace", "escape", "space",
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+        "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
+    };
+
+    public static string curKey = "space";
     
+    private string _nextKey;
+    private float _keyCountdown;
+    private bool _CountdownStarted;
+
+    #endregion
+
     #region Events
 
+    public static event Action GenerateKey;
     public static event Action GameOver;
 
     #endregion
 
+    #region MonoBehaviour
+
     private void Awake()
     {
         GameOver += Temp;
+        GenerateKey += generateKey;
     }
 
     private void OnDestroy()
     {
         GameOver -= Temp;
+        GenerateKey -= generateKey;
     }
 
     private void Start()
     {
-        // _shared = this;
-        InvokeRepeating("CreateWall",1,wallDelay);
+        InvokeRepeating(nameof(CreateWall), firstWallTime, wallsDelay);
+        InvokeRepeating(nameof(CreateKeyChangePowerUp), firstWallTime-1f, wallsDelay);
+        _keyCountdown = keyChangeDelayDuration;
     }
 
+    private void Update()
+    {
+        if (_CountdownStarted)
+        {
+            if (_keyCountdown <= 0)
+            {
+                curKey = _nextKey;
+                _CountdownStarted = false;
+            }
+            else
+            {
+                _keyCountdown -= Time.deltaTime;
+            }
+        }
+        double timeLeft = Math.Round(_keyCountdown, 2);
+        keyTimeLeftMsg.text = timeLeft.ToString();
+    }
+
+    #endregion
+    
+    #region Methods
+
+    public static void InvokeGameOver()
+    {
+        GameOver?.Invoke();
+    }
+    
+    public static void InvokeGenerateKey()
+    {
+        GenerateKey?.Invoke();
+    }
     private void CreateWall()
     {
         Instantiate(wallPrefab);
     }
-    
+
+    private void CreateKeyChangePowerUp()
+    {
+        Instantiate(changeKeyPrefab);
+    }
+
     private void Temp()
     {
         print("GameOver");
     }
     
-    public static void InvokeGameOver()
+    private void generateKey()
     {
-        GameOver?.Invoke();
+        if (_CountdownStarted)
+            return;
+        
+        _nextKey = keys[Random.Range(0, keys.Length - 1)];
+        _keyCountdown = keyChangeDelayDuration;
+        _CountdownStarted = true;
+        print(_nextKey);
     }
-
+    
+    
+    #endregion
 }
