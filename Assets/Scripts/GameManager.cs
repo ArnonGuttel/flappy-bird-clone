@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -21,17 +22,16 @@ public class GameManager : MonoBehaviour
 
     private readonly String[] keys =
     {
-        "backspace", "escape", "space",
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
-        "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
+        "w", "space", "a", "s", "d"
     };
 
     public static string curKey = "space";
-
-    private string _nextKey;
+    public static string nextKey;
+    
     private float _keyCountdown;
     private bool _countdownStarted;
+
+    private bool _gameStarted;
 
     #endregion
 
@@ -41,6 +41,8 @@ public class GameManager : MonoBehaviour
     public static event Action changeGravity;
     public static event Action GenerateKey;
     public static event Action GameOver;
+    public static event Action UpdateUi;
+    public static event Action StartGame;
 
     #endregion
 
@@ -48,31 +50,38 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        GameOver += Temp;
+        StartGame += CreateItems;
+        GameOver += ResetScene;
         GenerateKey += generateKey;
-        
     }
 
     private void OnDestroy()
     {
-        GameOver -= Temp;
+        StartGame -= CreateItems;
+        GameOver -= ResetScene;
         GenerateKey -= generateKey;
     }
 
     private void Start()
     {
-        InvokeRepeating(nameof(CreateWall), firstWallTime, wallsDelay);
-        InvokeRepeating(nameof(CreatePowerUp), firstWallTime - 3f, wallsDelay);
         _keyCountdown = keyChangeDelayDuration;
+        curKey = "space";
     }
 
     private void Update()
     {
+        if (!_gameStarted)
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                _gameStarted = true;
+                InvokeStartGame();
+            }
+        
         if (_countdownStarted)
         {
             if (_keyCountdown <= 0)
             {
-                curKey = _nextKey;
+                curKey = nextKey;
                 _countdownStarted = false;
             }
             else
@@ -106,6 +115,17 @@ public class GameManager : MonoBehaviour
         changeGravity?.Invoke();
     }
 
+    public static void InvokeStartGame()
+    {
+        StartGame?.Invoke();
+    }
+
+    private void InvokeUpdateUi()
+    {
+        UpdateUi?.Invoke();
+    }
+
+
     private void CreateWall()
     {
         Instantiate(wallPrefab);
@@ -117,9 +137,9 @@ public class GameManager : MonoBehaviour
         Instantiate(temp == 0 ? keyChangePrefab : gravityChangePrefab);
     }
 
-    private void Temp()
+    private void ResetScene()
     {
-        print("GameOver");
+       SceneManager.LoadScene("MainScene");
     }
 
     private void generateKey()
@@ -127,11 +147,18 @@ public class GameManager : MonoBehaviour
         if (_countdownStarted)
             return;
 
-        _nextKey = keys[Random.Range(0, keys.Length - 1)];
+        nextKey = keys[Random.Range(0, keys.Length - 1)];
         _keyCountdown = keyChangeDelayDuration;
         _countdownStarted = true;
-        print(_nextKey);
+        InvokeUpdateUi();
     }
+
+    private void CreateItems()
+    {
+        InvokeRepeating(nameof(CreateWall), firstWallTime, wallsDelay);
+        InvokeRepeating(nameof(CreatePowerUp), firstWallTime+1, wallsDelay*1.3f);
+    }
+    
 
     #endregion
 }

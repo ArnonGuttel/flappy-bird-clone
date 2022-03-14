@@ -3,11 +3,13 @@ using UnityEngine;
 public class GravityPowerUp : MonoBehaviour
 {
     [SerializeField] private float speed;
+    private AudioSource _audio;
     
     void Start()
     {
         var yPos =  Random.Range(-4f, 4f);
         gameObject.transform.position = new Vector3(10, yPos, 0);
+        _audio = GetComponent<AudioSource>();
     }
     void Update()
     {
@@ -22,7 +24,9 @@ public class GravityPowerUp : MonoBehaviour
         {
             GameManager.InvokePowerUpTaken();
             GameManager.InvokeGravityChange();
-            Destroy(gameObject);
+            _audio.Play();
+            gameObject.GetComponent<SpriteRenderer>().sprite = null;
+            Destroy(gameObject,0.2f);
         }
         
         if (other.CompareTag("Wall"))
